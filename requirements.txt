@@ -1,1 +1,4 @@
-requests==2.26.0
+Django>=5.0
+phonenumbers>=8.13.0
+opencage>=2.0.0
+requests>=2.26.0

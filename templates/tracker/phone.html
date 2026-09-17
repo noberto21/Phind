@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Interactive Phone Number Locator - CyberTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left Column: Search & Telemetry -->
+    <div class="col-lg-5">
+        <div class="cyber-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="fa-solid fa-phone-volume text-cyan me-2"></i> Cellular Subscriber Locator
+                </h5>
+                <button type="button" class="btn btn-sm btn-outline-info font-monospace fs-8" id="fillSamplePhone">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Sample Number
+                </button>
+            </div>
+            <p class="text-secondary fs-8 mb-3">
+                Parses global MSISDN numbers, identifies telecommunications carrier, resolves OpenCage geocoding, and calculates direct geographical distance.
+            </p>
+
+            <form id="phoneLocateForm">
+                <div class="mb-3">
+                    <label for="phoneNumberInput" class="form-label fs-8 text-secondary text-uppercase tracking-wider">Phone Number (International Format)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-cyan font-monospace"><i class="fa-solid fa-phone"></i></span>
+                        <input type="text" class="form-control font-monospace" id="phoneNumberInput" placeholder="e.g. +254712345678 or +14155552671" required>
+                    </div>
+                    <span class="fs-9 text-secondary mt-1 d-block">Must include leading plus sign <code class="text-cyan">+</code> and country code.</span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="userLocationInput" class="form-label fs-8 text-secondary text-uppercase tracking-wider">Your Current Location (Optional - for Distance & Route)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-25 text-light"><i class="fa-solid fa-location-arrow"></i></span>
+                        <input type="text" class="form-control" id="userLocationInput" placeholder="e.g. Nairobi, Kenya or London, UK">
+                    </div>
+                    <span class="fs-9 text-secondary mt-1 d-block">Used to calculate distance and draw routing vectors.</span>
+                </div>
+
+                <button type="submit" class="btn btn-cyber-primary w-100 mt-2" id="phoneSubmitBtn">
+                    <i class="fa-solid fa-magnifying-glass-location me-2"></i> Locate Phone
+                </button>
+            </form>
+        </div>
+
+        <!-- Phone Metadata Result Card -->
+        <div class="cyber-card p-4 d-none" id="phoneResultsCard">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-secondary border-opacity-25">
+                <div>
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="fa-solid fa-tower-cell text-success me-2"></i> Carrier & Geocode Match
+                    </h5>
+                    <span class="fs-8 text-secondary">Parsed telemetry via OpenCage Geocoder</span>
+                </div>
+                <a href="#" target="_blank" class="btn btn-sm btn-outline-info font-monospace fs-8" id="resDirectionsLink">
+                    <i class="fa-solid fa-diamond-turn-right me-1"></i> Google Directions
+                </a>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Formatted Number</span>
+                        <strong class="text-cyan font-monospace" id="resPhoneNum">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Network Operator</span>
+                        <strong class="text-white font-monospace" id="resCarrier">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Country / Jurisdiction</span>
+                        <strong class="text-white font-monospace" id="resCountry">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6" id="distContainer">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Distance from You</span>
+                        <strong class="text-warning font-monospace" id="resDistance">-</strong>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Resolved Address & Coordinates</span>
+                        <div class="text-white fs-8" id="resResolvedAddress">-</div>
+                        <div class="text-cyan font-monospace fs-8 mt-1" id="resCoords">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Interactive Map with Route -->
+    <div class="col-lg-7">
+        <div class="cyber-card p-3 position-relative">
+            <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="pulse-dot"></span>
+                    <strong class="text-white fs-7">Carrier Geographic Coverage & Route Map</strong>
+                </div>
+                <span class="fs-9 text-secondary font-monospace">Folium / Leaflet Dual Vector</span>
+            </div>
+            <div id="phoneMapContainer" class="cyber-map" style="height: 540px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

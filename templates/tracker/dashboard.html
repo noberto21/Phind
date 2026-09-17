@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CyberTrack Pro{% endblock %}
+
+{% block content %}
+<!-- Welcome & Telemetry Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-3">
+            <h2 class="fw-bold mb-0 text-white">Geospatial Intelligence Center</h2>
+            <span class="badge bg-dark-cyan text-cyan border border-cyan py-2 px-3">Live Telemetry</span>
+        </div>
+        <p class="text-secondary mt-2 mb-0">
+            Real-time IMEI mobile hardware interrogator, cellular carrier triangulator, and international phone geolocator.
+        </p>
+    </div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{% url 'imei_tracker' %}" class="btn btn-cyber-primary me-2">
+            <i class="fa-solid fa-satellite-dish me-2"></i> Track IMEI
+        </a>
+        <a href="{% url 'phone_tracker' %}" class="btn btn-cyber-secondary">
+            <i class="fa-solid fa-phone me-2"></i> Locate Phone
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-secondary fs-8 text-uppercase tracking-wider">Total Queries</span>
+                <h3 class="fw-bold text-white mb-0 mt-1">{{ total_count }}</h3>
+                <span class="fs-9 text-cyan"><i class="fa-solid fa-arrow-trend-up me-1"></i> Recorded in system</span>
+            </div>
+            <div class="kpi-icon bg-dark-cyan text-cyan">
+                <i class="fa-solid fa-tower-broadcast"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-secondary fs-8 text-uppercase tracking-wider">Android IMEIs</span>
+                <h3 class="fw-bold text-white mb-0 mt-1">{{ android_count }}</h3>
+                <span class="fs-9 text-success"><i class="fa-brands fa-android me-1"></i> GSMA Hardware TAC</span>
+            </div>
+            <div class="kpi-icon bg-success bg-opacity-10 text-success">
+                <i class="fa-brands fa-android"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-secondary fs-8 text-uppercase tracking-wider">iPhone (Find My)</span>
+                <h3 class="fw-bold text-white mb-0 mt-1">{{ iphone_count }}</h3>
+                <span class="fs-9 text-white"><i class="fa-brands fa-apple me-1"></i> iCloud Grid</span>
+            </div>
+            <div class="kpi-icon bg-light bg-opacity-10 text-white">
+                <i class="fa-brands fa-apple"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-secondary fs-8 text-uppercase tracking-wider">Phone Locators</span>
+                <h3 class="fw-bold text-white mb-0 mt-1">{{ phone_count }}</h3>
+                <span class="fs-9 text-warning"><i class="fa-solid fa-map-location-dot me-1"></i> Geocoded Points</span>
+            </div>
+            <div class="kpi-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Interactive Hub Layout -->
+<div class="row g-4">
+    <!-- Left Column: Radar + Feature Modules -->
+    <div class="col-lg-5">
+        <div class="cyber-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom border-secondary border-opacity-25">
+                <div>
+                    <h5 class="fw-bold text-white mb-0">Active Radar Scanner</h5>
+                    <span class="fs-8 text-secondary">Broadband RF Signal Interception</span>
+                </div>
+                <div class="radar-widget">
+                    <div class="radar-circle c1"></div>
+                    <div class="radar-circle c2"></div>
+                    <div class="radar-sweep"></div>
+                    <i class="fa-solid fa-crosshairs text-cyan fs-5" style="z-index: 2;"></i>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-cyan text-uppercase fs-8 tracking-wider mb-3">System Capabilities</h6>
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex gap-3 p-3 rounded bg-dark-cyan border border-cyan border-opacity-25">
+                    <div class="fs-4 text-cyan"><i class="fa-solid fa-barcode"></i></div>
+                    <div>
+                        <h6 class="fw-semibold text-white mb-1">IMEI Luhn & TAC Decoder</h6>
+                        <p class="fs-8 text-secondary mb-0">Validates 15-digit mobile identities against GSMA Luhn checksums and automatically identifies manufacturer, model, and carrier specs.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 p-3 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                    <div class="fs-4 text-success"><i class="fa-solid fa-globe"></i></div>
+                    <div>
+                        <h6 class="fw-semibold text-white mb-1">OpenCage Geocoding & Distance</h6>
+                        <p class="fs-8 text-secondary mb-0">Parses national & international phone numbers, resolves regional carriers, and calculates real-world Haversine distances to target coords.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 p-3 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                    <div class="fs-4 text-warning"><i class="fa-solid fa-map"></i></div>
+                    <div>
+                        <h6 class="fw-semibold text-white mb-1">Dynamic Leaflet Mapping</h6>
+                        <p class="fs-8 text-secondary mb-0">Real-time vector and satellite tiles with route polylines, accuracy beacon circles, and seamless Google Maps / Apple Find My export.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Tracking Activity -->
+    <div class="col-lg-7">
+        <div class="cyber-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h5 class="fw-bold text-white mb-0">Recent Tracking Logs</h5>
+                    <span class="fs-8 text-secondary">Latest telemetry sessions stored in database</span>
+                </div>
+                <a href="{% url 'history' %}" class="fs-8 text-cyan text-decoration-none hover-cyan">
+                    View Full History <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            {% if recent_records %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0 font-monospace fs-8">
+                    <thead>
+                        <tr class="text-secondary border-secondary border-opacity-25">
+                            <th>Type</th>
+                            <th>Target Identifier</th>
+                            <th>Carrier / Model</th>
+                            <th>Location</th>
+                            <th>Date/Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_records %}
+                        <tr class="border-secondary border-opacity-10">
+                            <td>
+                                {% if item.target_type == 'android_imei' %}
+                                    <span class="badge bg-success bg-opacity-25 text-success border border-success"><i class="fa-brands fa-android me-1"></i> IMEI</span>
+                                {% elif item.target_type == 'iphone_appleid' %}
+                                    <span class="badge bg-light bg-opacity-25 text-white border border-light"><i class="fa-brands fa-apple me-1"></i> iCloud</span>
+                                {% else %}
+                                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning"><i class="fa-solid fa-phone me-1"></i> Phone</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-white fw-bold">{{ item.query_identifier }}</td>
+                            <td class="text-secondary">{{ item.carrier_or_brand|default:item.device_model|default:'N/A' }}</td>
+                            <td>
+                                <span class="text-cyan"><i class="fa-solid fa-location-dot me-1"></i> {{ item.location_name|truncatechars:24 }}</span>
+                            </td>
+                            <td class="text-secondary">{{ item.created_at|date:"M d, H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-secondary">
+                <i class="fa-solid fa-radar fa-3x mb-3 text-secondary text-opacity-50"></i>
+                <p class="mb-2">No tracking records yet in the database.</p>
+                <a href="{% url 'imei_tracker' %}" class="btn btn-sm btn-cyber-primary">Launch First IMEI Track</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

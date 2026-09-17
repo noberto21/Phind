@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Interactive IMEI & Device Tracker - CyberTrack Pro{% endblock %}
+
+{% block content %}
+<!-- High Accuracy Find My Device Banner -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="cyber-card p-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 border-cyan bg-dark-cyan">
+            <div class="d-flex align-items-center gap-3">
+                <div class="radar-pulse-icon fs-3 text-cyan">
+                    <i class="fa-solid fa-satellite"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-white mb-0">High-Accuracy Find My Device Engine Active</h6>
+                    <span class="fs-8 text-secondary">
+                        Achieve <strong>meter-level precision (±3m–10m)</strong> using Hardware GNSS/GPS synchronization, Remote Ping Beacons, or Official Cloud Networks.
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-cyber-primary font-monospace fs-8" id="syncHardwareGpsBtn">
+                    <i class="fa-solid fa-location-crosshairs me-1"></i> Sync Hardware GPS
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-warning font-monospace fs-8" id="playChimeBtn">
+                    <i class="fa-solid fa-bell me-1"></i> Ring Device
+                </button>
+                <a href="https://www.google.com/android/find?u=0" target="_blank" class="btn btn-sm btn-outline-light font-monospace fs-8">
+                    <i class="fa-brands fa-google me-1"></i> Google Find My
+                </a>
+                <a href="https://www.icloud.com/find" target="_blank" class="btn btn-sm btn-outline-light font-monospace fs-8">
+                    <i class="fa-brands fa-apple me-1"></i> Apple Find My
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Input Panel & Live Console -->
+    <div class="col-lg-5">
+        <div class="cyber-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="fa-solid fa-mobile-screen text-cyan me-2"></i> Device Interrogator
+                </h5>
+                <button type="button" class="btn btn-sm btn-outline-info font-monospace fs-8" id="fillSampleImei">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Sample Data
+                </button>
+            </div>
+
+            <!-- Device Type Selector -->
+            <form id="imeiTrackForm">
+                <div class="mb-3">
+                    <label class="form-label fs-8 text-secondary text-uppercase tracking-wider">Device Platform</label>
+                    <div class="d-flex gap-2">
+                        <input type="radio" class="btn-check" name="device_type" id="platformAndroid" value="android" checked>
+                        <label class="btn btn-cyber-secondary flex-fill text-center" for="platformAndroid">
+                            <i class="fa-brands fa-android text-success me-2"></i> Android (IMEI)
+                        </label>
+
+                        <input type="radio" class="btn-check" name="device_type" id="platformIphone" value="iphone">
+                        <label class="btn btn-cyber-secondary flex-fill text-center" for="platformIphone">
+                            <i class="fa-brands fa-apple text-white me-2"></i> iPhone (Find My)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Android Specific Inputs -->
+                <div id="androidFields">
+                    <div class="mb-3">
+                        <label for="imeiInput" class="form-label fs-8 text-secondary text-uppercase tracking-wider">15-Digit IMEI Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-cyan font-monospace">#</span>
+                            <input type="text" class="form-control font-monospace" id="imeiInput" placeholder="e.g. 354595804618131" maxlength="18">
+                        </div>
+                        <span class="fs-9 text-secondary mt-1 d-block">Dial <code class="text-cyan">*#06#</code> on phone to obtain device IMEI.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="accountEmailInput" class="form-label fs-8 text-secondary text-uppercase tracking-wider">Google Find My Email (Optional)</label>
+                        <input type="email" class="form-control" id="accountEmailInput" placeholder="e.g. device.owner@gmail.com">
+                    </div>
+                </div>
+
+                <!-- iPhone Specific Inputs -->
+                <div id="iphoneFields" class="d-none">
+                    <div class="mb-3">
+                        <label for="appleIdInput" class="form-label fs-8 text-secondary text-uppercase tracking-wider">Apple ID / iCloud Account</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-light"><i class="fa-solid fa-at"></i></span>
+                            <input type="email" class="form-control" id="appleIdInput" placeholder="e.g. user@icloud.com">
+                        </div>
+                        <span class="fs-9 text-secondary mt-1 d-block">Uses Apple Find My iCloud device triangulation.</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button type="submit" class="btn btn-cyber-primary w-100 mt-2" id="trackSubmitBtn">
+                    <i class="fa-solid fa-satellite-dish me-2"></i> <span id="trackBtnText">Track Android Device</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Real-time Progress & Terminal Log -->
+        <div class="cyber-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold text-white mb-0 font-monospace fs-8">
+                    <i class="fa-solid fa-terminal text-cyan me-1"></i> Triangulation Log Console
+                </h6>
+                <span class="badge bg-secondary bg-opacity-25 text-secondary fs-9 font-monospace" id="consoleModeBadge">GSMA GRID</span>
+            </div>
+
+            <!-- Animated Progress Bar -->
+            <div class="cyber-progress-container mb-3">
+                <div class="cyber-progress-bar" id="trackerProgressBar"></div>
+            </div>
+
+            <!-- Terminal Output -->
+            <div class="cyber-terminal" id="trackerTerminal">
+                <div class="terminal-line">
+                    <span class="terminal-time">[Ready]</span>
+                    <span class="terminal-stage">&lt;STANDBY&gt;</span>
+                    <span class="terminal-text">System primed. Use Track Device or Sync Hardware GPS to locate.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Interactive Map & Telemetry Dashboard -->
+    <div class="col-lg-7">
+        <!-- Leaflet Map Container -->
+        <div class="cyber-card p-3 mb-4 position-relative">
+            <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="pulse-dot"></span>
+                    <strong class="text-white fs-7">Interactive Geospatial Radar View</strong>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success fs-9 d-none" id="highAccuracyBadge">
+                        <i class="fa-solid fa-crosshairs me-1"></i> High Accuracy (±3m)
+                    </span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-25 text-cyan fs-9 font-monospace py-0 px-2" id="mapRecenterBtn">
+                        <i class="fa-solid fa-bullseye me-1"></i> Recenter
+                    </button>
+                </div>
+            </div>
+            
+            <div id="imeiMapContainer" class="cyber-map"></div>
+        </div>
+
+        <!-- Remote Find My Device Beacon Link Box (Appears when tracking session generated) -->
+        <div class="cyber-card p-3 mb-4 border-cyan d-none" id="beaconCard">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    <strong class="text-white fs-8"><i class="fa-solid fa-link text-cyan me-1"></i> Remote Find My Device Ping Link</strong>
+                    <span class="fs-9 text-secondary d-block">Send this link to the lost phone via SMS/WhatsApp to acquire its exact hardware GPS coordinates:</span>
+                </div>
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning fs-9" id="beaconPollBadge">
+                    <i class="fa-solid fa-spinner fa-spin me-1"></i> Listening
+                </span>
+            </div>
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control font-monospace fs-8" id="beaconUrlInput" readonly>
+                <button class="btn btn-outline-info" type="button" id="copyBeaconBtn">
+                    <i class="fa-solid fa-copy me-1"></i> Copy Link
+                </button>
+                <a href="#" target="_blank" class="btn btn-outline-light" id="openBeaconDirectBtn">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+                </a>
+            </div>
+        </div>
+
+        <!-- Telemetry Results Card -->
+        <div class="cyber-card p-4 d-none" id="telemetryCard">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pb-3 mb-3 border-bottom border-secondary border-opacity-25 gap-2">
+                <div>
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="fa-solid fa-microchip text-success me-2"></i> Hardware Telemetry Acquired
+                    </h5>
+                    <span class="fs-8 text-secondary" id="telemetrySubtitle">Cellular ping & signature details</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#" target="_blank" class="btn btn-sm btn-outline-info font-monospace fs-8" id="telGmapsLink">
+                        <i class="fa-solid fa-map-pin me-1"></i> Google Maps
+                    </a>
+                    <a href="#" target="_blank" class="btn btn-sm btn-cyber-primary font-monospace fs-8" id="telFindMyLink">
+                        <i class="fa-solid fa-compass me-1"></i> Find My Device
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Manufacturer / Sensor</span>
+                        <strong class="text-white font-monospace" id="telBrand">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Model Signature</span>
+                        <strong class="text-white font-monospace" id="telModel">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Network / Carrier</span>
+                        <strong class="text-cyan font-monospace" id="telCarrier">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Exact Coordinates</span>
+                        <strong class="text-white font-monospace fs-8" id="telCoords">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Location Name / Address</span>
+                        <strong class="text-white font-monospace fs-8" id="telLocation">-</strong>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <span class="fs-9 text-secondary text-uppercase d-block">Precision & Status</span>
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success me-1" id="telStatus">-</span>
+                        <span class="badge bg-info bg-opacity-25 text-cyan border border-cyan" id="telBattery">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

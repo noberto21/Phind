@@ -11,7 +11,7 @@ def get_location(lat, lng, api_key):
         return None
 
 def main():
-    api_key = 'YOUR_API_KEY'  # Replace with your OpenCage API key
+    api_key = 'f57bb1806a5e48a4a232184b35752903'  # OpenCage API key
     current_lat = input("Enter your current latitude: ")
     current_lng = input("Enter your current longitude: ")
     dest_lat = input("Enter destination latitude: ")

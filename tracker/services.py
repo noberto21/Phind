@@ -7,7 +7,7 @@ from phonenumbers import geocoder as phonenumbers_geocoder
 from phonenumbers import carrier, timezone
 from opencage.geocoder import OpenCageGeocode
 
-OPENCAGE_API_KEY = "8c3d04ff9f4a410b8ba3d6e8aa9408f7"
+OPENCAGE_API_KEY = "f57bb1806a5e48a4a232184b35752903"
 
 # Fallback coordinates for major countries when offline or API limit reached
 COUNTRY_COORDINATES = {

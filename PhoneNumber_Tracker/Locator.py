@@ -8,8 +8,8 @@ import time
 import sys
 from colorama import Fore, Style
 
-# Replace with your OpenCage API key
-key = "8c3d04ff9f4a410b8ba3d6e8aa9408f7"
+# OpenCage API key
+key = "f57bb1806a5e48a4a232184b35752903"
 
 def get_coordinates(location, api_key):
     geocoder = OpenCageGeocode(api_key)
@@ -57,9 +57,9 @@ def banner():
  
                                                                         
     """ + Style.RESET_ALL)
-    print(Fore.YELLOW + "Created by CHEGEBB" + Style.RESET_ALL)
+    print(Fore.YELLOW + "Created by Berto" + Style.RESET_ALL)
     print(Fore.YELLOW + "Computer Science Student and Cybersecurity Enthusiast" + Style.RESET_ALL)
-    print(Fore.YELLOW + "GitHub: https://github.com/CHEGEBB" + Style.RESET_ALL)
+    print(Fore.YELLOW + "GitHub: https://github.com/noberto21" + Style.RESET_ALL)
 
 def menu():
     print(Fore.BLUE + "\nMenu:")

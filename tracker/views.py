@@ -95,7 +95,26 @@ def api_track_imei(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid device type specified.'}, status=400)
 
-    result = simulate_device_tracking(device_type, identifier, account_email)
+    target_region = params.get('target_region', '').strip()
+    client_timezone = params.get('client_timezone', '').strip()
+
+    anchor_coords = None
+    if target_region in ['', 'auto']:
+        target_region = None
+        # Check if recent live GPS sensor fix exists to anchor realistically
+        recent_gps = TrackingRecord.objects.filter(is_live_gps=True).order_by('-id').first()
+        if recent_gps and recent_gps.latitude and recent_gps.longitude:
+            if (timezone.now() - recent_gps.created_at).total_seconds() < 86400 * 7:
+                anchor_coords = (recent_gps.latitude, recent_gps.longitude)
+
+    result = simulate_device_tracking(
+        device_type,
+        identifier,
+        account_email,
+        country_or_region=target_region,
+        client_timezone=client_timezone,
+        anchor_coords=anchor_coords
+    )
 
     # Persist record in database
     ip = get_client_ip(request)
@@ -110,10 +129,10 @@ def api_track_imei(request):
             latitude=result['latitude'],
             longitude=result['longitude'],
             location_name=result['location_name'],
-            status='Located (Cellular/TAC)',
+            status='Simulated (Cellular HLR)',
             accuracy_meters=result['accuracy_meters'],
             ip_address=ip,
-            notes=f"Tracked via interactive console. Account: {account_email or 'Anonymous'}"
+            notes=f"Tracked via interactive console (Simulated HLR). Region hint: {target_region or client_timezone or 'Auto'}."
         )
         beacon_token_str = str(record.beacon_token)
         beacon_url = request.build_absolute_uri(f"/beacon/{beacon_token_str}/")
@@ -286,8 +305,8 @@ def api_track_phone(request):
             latitude=result['target_lat'],
             longitude=result['target_lng'],
             location_name=result['resolved_address'],
-            status='Located',
-            accuracy_meters=500,
+            status='Simulated (Cellular HLR)',
+            accuracy_meters=result.get('accuracy_meters', 2000),
             distance_km=result.get('distance_km'),
             ip_address=ip,
             notes=f"Carrier: {result['carrier']}, Timezones: {', '.join(result.get('timezones', []))}"

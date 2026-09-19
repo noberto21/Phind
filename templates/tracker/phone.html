@@ -49,13 +49,20 @@
             <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-secondary border-opacity-25">
                 <div>
                     <h5 class="fw-bold text-white mb-0">
-                        <i class="fa-solid fa-tower-cell text-success me-2"></i> Carrier & Geocode Match
+                        <i class="fa-solid fa-tower-cell text-info me-2"></i> Carrier & Geocode Match
                     </h5>
-                    <span class="fs-8 text-secondary">Parsed telemetry via OpenCage Geocoder</span>
+                    <span class="fs-8 text-secondary">Parsed telemetry via OpenCage Geocoder & MSISDN Registry</span>
                 </div>
                 <a href="#" target="_blank" class="btn btn-sm btn-outline-info font-monospace fs-8" id="resDirectionsLink">
                     <i class="fa-solid fa-diamond-turn-right me-1"></i> Google Directions
                 </a>
+            </div>
+
+            <!-- Registry Explanation Notice -->
+            <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 p-2 mb-3 fs-8">
+                <i class="fa-solid fa-circle-info text-info me-1"></i>
+                <strong>Carrier MSISDN Registry:</strong>
+                <span class="text-white">Mobile numbers map to cellular network operator regional hubs and country jurisdictions.</span>
             </div>
 
             <div class="row g-3">

@@ -121,10 +121,10 @@ function initLeafletMap(containerId, defaultLat = 0, defaultLng = 0, zoom = 3) {
         attributionControl: false
     }).setView([defaultLat, defaultLng], zoom);
 
-    // High performance dark CartoDB tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    // Use OpenStreetMap tiles (no API key required)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        subdomains: 'abcd'
+        subdomains: 'abc'
     }).addTo(map);
 
     L.control.attribution({ position: 'bottomright' })
@@ -148,7 +148,7 @@ function plotImeiOnMap(lat, lng, label, sublabel, accuracyMeters = 10, isLiveGps
     if (CyberTrackMaps.imeiMarker) map.removeLayer(CyberTrackMaps.imeiMarker);
     if (CyberTrackMaps.imeiCircle) map.removeLayer(CyberTrackMaps.imeiCircle);
 
-    const pinColor = isLiveGps ? '#10b981' : '#00f0ff';
+    const pinColor = isLiveGps ? '#10b981' : '#f59e0b';
     const iconHtml = `
         <div style="background-color:${pinColor}; width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 18px ${pinColor}; animation: pulse 1.2s infinite;"></div>
     `;
@@ -161,16 +161,16 @@ function plotImeiOnMap(lat, lng, label, sublabel, accuracyMeters = 10, isLiveGps
 
     CyberTrackMaps.imeiMarker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
     CyberTrackMaps.imeiCircle = L.circle([lat, lng], {
-        radius: isLiveGps ? Math.max(accuracyMeters, 15) : 350,
+        radius: isLiveGps ? Math.max(accuracyMeters, 15) : (accuracyMeters || 1500),
         color: pinColor,
         fillColor: pinColor,
-        fillOpacity: isLiveGps ? 0.22 : 0.15,
+        fillOpacity: isLiveGps ? 0.22 : 0.12,
         weight: isLiveGps ? 2 : 1.5
     }).addTo(map);
 
     const accuracyBadge = isLiveGps ? 
-        `<span class="badge bg-success mt-1"><i class="fa-solid fa-crosshairs me-1"></i> Live GNSS (±${accuracyMeters}m)</span>` :
-        `<span class="badge bg-info text-dark mt-1">Cellular TAC (±${accuracyMeters}m)</span>`;
+        `<span class="badge bg-success mt-1"><i class="fa-solid fa-crosshairs me-1"></i> Live Hardware GPS (±${accuracyMeters}m)</span>` :
+        `<span class="badge bg-warning text-dark mt-1"><i class="fa-solid fa-tower-cell me-1"></i> Simulated Cellular HLR (±${accuracyMeters}m)</span>`;
 
     CyberTrackMaps.imeiMarker.bindPopup(`
         <div class="p-1">
@@ -181,12 +181,18 @@ function plotImeiOnMap(lat, lng, label, sublabel, accuracyMeters = 10, isLiveGps
     `).openPopup();
 
     const highAccBadge = document.getElementById('highAccuracyBadge');
-    if (highAccBadge) {
-        if (isLiveGps) {
+    const simBadge = document.getElementById('simulatedBadge');
+    if (isLiveGps) {
+        if (highAccBadge) {
             highAccBadge.classList.remove('d-none');
             highAccBadge.innerHTML = `<i class="fa-solid fa-crosshairs me-1"></i> Live GPS (±${accuracyMeters}m)`;
-        } else {
-            highAccBadge.classList.add('d-none');
+        }
+        if (simBadge) simBadge.classList.add('d-none');
+    } else {
+        if (highAccBadge) highAccBadge.classList.add('d-none');
+        if (simBadge) {
+            simBadge.classList.remove('d-none');
+            simBadge.innerHTML = `<i class="fa-solid fa-tower-cell me-1"></i> Simulated Cellular HLR (±${accuracyMeters}m)`;
         }
     }
 }
@@ -325,8 +331,19 @@ function initImeiTracker() {
                                 document.getElementById('telCarrier').textContent = 'Satellite Constellation / Wi-Fi';
                                 document.getElementById('telCoords').textContent = `${data.latitude}, ${data.longitude}`;
                                 document.getElementById('telLocation').textContent = data.location_name;
-                                document.getElementById('telStatus').textContent = `GPS Locked (±${data.accuracy_meters}m)`;
+                                document.getElementById('telStatus').textContent = `Live GPS Locked (±${data.accuracy_meters}m)`;
+                                document.getElementById('telStatus').className = 'badge bg-success bg-opacity-25 text-success border border-success me-1';
                                 document.getElementById('telBattery').textContent = '100% Active';
+
+                                const noticeTitle = document.getElementById('telemetryModeTitle');
+                                const noticeDesc = document.getElementById('telemetryModeDesc');
+                                const noticeBanner = document.getElementById('telemetryNotice');
+                                if (noticeTitle && noticeDesc && noticeBanner) {
+                                    noticeBanner.className = 'alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 p-2 mb-3 d-flex align-items-center justify-content-between fs-8';
+                                    noticeTitle.className = 'text-success';
+                                    noticeTitle.textContent = "Live Hardware GPS Telemetry:";
+                                    noticeDesc.textContent = `High precision satellite fix (±${data.accuracy_meters}m) verified directly via device onboard hardware GNSS chipset.`;
+                                }
 
                                 document.getElementById('telGmapsLink').href = data.google_maps_url;
                                 const findMy = document.getElementById('telFindMyLink');
@@ -430,11 +447,19 @@ function initImeiTracker() {
         progressBar.style.width = '5%';
         logToTerminal(terminal, 'SYS', 'Initiating tracking sequence for target hardware...', 'info');
 
+        const targetRegion = document.getElementById('targetRegionSelect')?.value || 'auto';
+        let clientTimezone = '';
+        try {
+            clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (e) {}
+
         const formData = new FormData();
         formData.append('device_type', deviceType);
         formData.append('imei', imei);
         formData.append('apple_id', appleId);
         formData.append('account_email', accountEmail);
+        formData.append('target_region', targetRegion);
+        formData.append('client_timezone', clientTimezone);
 
         try {
             const response = await fetch('/api/track-imei/', {
@@ -466,6 +491,9 @@ function initImeiTracker() {
                 logToTerminal(terminal, step.stage, step.text, logType);
             }
 
+            // Note in terminal about simulated telemetry vs live GPS
+            logToTerminal(terminal, 'SIMULATION_NOTE', `Carrier sector simulated (±${data.accuracy_meters}m). For live moving GPS, use Beacon link below or Sync Hardware GPS.`, 'info');
+
             // Display Remote Beacon Link for target phone
             if (data.beacon_url && beaconCard) {
                 beaconCard.classList.remove('d-none');
@@ -482,8 +510,19 @@ function initImeiTracker() {
                 document.getElementById('telCarrier').textContent = data.carrier;
                 document.getElementById('telCoords').textContent = `${data.latitude}, ${data.longitude}`;
                 document.getElementById('telLocation').textContent = data.location_name;
-                document.getElementById('telStatus').textContent = data.connection_status;
+                document.getElementById('telStatus').textContent = `Simulated HLR (±${data.accuracy_meters}m)`;
+                document.getElementById('telStatus').className = 'badge bg-warning bg-opacity-25 text-warning border border-warning me-1';
                 document.getElementById('telBattery').textContent = data.battery_level;
+
+                const noticeTitle = document.getElementById('telemetryModeTitle');
+                const noticeDesc = document.getElementById('telemetryModeDesc');
+                const noticeBanner = document.getElementById('telemetryNotice');
+                if (noticeTitle && noticeDesc && noticeBanner) {
+                    noticeBanner.className = 'alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 p-2 mb-3 d-flex align-items-center justify-content-between fs-8';
+                    noticeTitle.className = 'text-warning';
+                    noticeTitle.textContent = "Simulated Cellular Telemetry:";
+                    noticeDesc.textContent = `Coordinates approximated via ${data.carrier} network routing near ${data.location_name}. For meter-level real-time satellite GPS, use "Sync Hardware GPS" or the Remote Beacon Link.`;
+                }
 
                 const findMyLink = document.getElementById('telFindMyLink');
                 if (findMyLink) {

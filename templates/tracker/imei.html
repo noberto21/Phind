@@ -95,6 +95,30 @@
                     </div>
                 </div>
 
+                <!-- Target Region Selector -->
+                <div class="mb-3">
+                    <label for="targetRegionSelect" class="form-label fs-8 text-secondary text-uppercase tracking-wider">
+                        <i class="fa-solid fa-globe text-cyan me-1"></i> Target Country / Region
+                    </label>
+                    <select class="form-select font-monospace fs-8 bg-dark text-white border-secondary border-opacity-25" id="targetRegionSelect">
+                        <option value="auto" selected>🌐 Auto-Detect (Current Region / Timezone)</option>
+                        <option value="kenya">🇰🇪 Kenya (+254)</option>
+                        <option value="south africa">🇿🇦 South Africa (+27)</option>
+                        <option value="nigeria">🇳🇬 Nigeria (+234)</option>
+                        <option value="united kingdom">🇬🇧 United Kingdom (+44)</option>
+                        <option value="united states">🇺🇸 United States (+1)</option>
+                        <option value="uganda">🇺🇬 Uganda (+256)</option>
+                        <option value="tanzania">🇹🇿 Tanzania (+255)</option>
+                        <option value="ghana">🇬🇭 Ghana (+233)</option>
+                        <option value="india">🇮🇳 India (+91)</option>
+                        <option value="germany">🇩🇪 Germany (+49)</option>
+                        <option value="france">🇫🇷 France (+33)</option>
+                        <option value="canada">🇨🇦 Canada (+1)</option>
+                        <option value="australia">🇦🇺 Australia (+61)</option>
+                    </select>
+                    <span class="fs-9 text-secondary mt-1 d-block">Simulates regional cellular carrier routing in chosen country.</span>
+                </div>
+
                 <!-- Action Button -->
                 <button type="submit" class="btn btn-cyber-primary w-100 mt-2" id="trackSubmitBtn">
                     <i class="fa-solid fa-satellite-dish me-2"></i> <span id="trackBtnText">Track Android Device</span>
@@ -113,10 +137,10 @@
 
             <!-- Animated Progress Bar -->
             <div class="cyber-progress-container mb-3">
-                <div class="cyber-progress-bar" id="trackerProgressBar"></div>
+                <div class="cyber-progress-bar" id="trackerProgressBar" style="width: 0%;"></div>
             </div>
 
-            <!-- Terminal Output -->
+            <!-- Scrollable Terminal Output -->
             <div class="cyber-terminal" id="trackerTerminal">
                 <div class="terminal-line">
                     <span class="terminal-time">[Ready]</span>
@@ -132,11 +156,14 @@
         <!-- Leaflet Map Container -->
         <div class="cyber-card p-3 mb-4 position-relative">
             <div class="d-flex align-items-center justify-content-between mb-2 px-1">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="pulse-dot"></span>
                     <strong class="text-white fs-7">Interactive Geospatial Radar View</strong>
                     <span class="badge bg-success bg-opacity-25 text-success border border-success fs-9 d-none" id="highAccuracyBadge">
-                        <i class="fa-solid fa-crosshairs me-1"></i> High Accuracy (±3m)
+                        <i class="fa-solid fa-crosshairs me-1"></i> Live GNSS (±3m)
+                    </span>
+                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning fs-9 d-none" id="simulatedBadge">
+                        <i class="fa-solid fa-tower-cell me-1"></i> Simulated Cellular HLR (±1500m)
                     </span>
                 </div>
                 <div class="d-flex gap-2">
@@ -190,6 +217,15 @@
                 </div>
             </div>
 
+            <!-- Telemetry Mode Notice Alert -->
+            <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 p-2 mb-3 d-flex align-items-center justify-content-between fs-8" id="telemetryNotice">
+                <div>
+                    <i class="fa-solid fa-circle-info text-warning me-1"></i>
+                    <strong class="text-warning" id="telemetryModeTitle">Simulated Cellular Telemetry:</strong>
+                    <span class="text-white" id="telemetryModeDesc">Coordinates approximated via cellular carrier HLR/TAC routing. For meter-level real-time satellite GPS, use "Sync Hardware GPS" or the Remote Beacon Link above.</span>
+                </div>
+            </div>
+
             <div class="row g-3">
                 <div class="col-sm-6 col-md-4">
                     <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
@@ -223,8 +259,8 @@
                 </div>
                 <div class="col-sm-6 col-md-4">
                     <div class="p-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
-                        <span class="fs-9 text-secondary text-uppercase d-block">Precision & Status</span>
-                        <span class="badge bg-success bg-opacity-25 text-success border border-success me-1" id="telStatus">-</span>
+                        <span class="fs-9 text-secondary text-uppercase d-block">Telemetry Mode & Precision</span>
+                        <span class="badge bg-warning bg-opacity-25 text-warning border border-warning me-1" id="telStatus">-</span>
                         <span class="badge bg-info bg-opacity-25 text-cyan border border-cyan" id="telBattery">-</span>
                     </div>
                 </div>
